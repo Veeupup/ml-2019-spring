@@ -7,5 +7,9 @@
 
 ​		这里的例子主要是针对中文 NLP 的处理，根据文本内容来分类。
 
-​		数据在dataset文件夹中。
+
+
+代码主干在 bayes.py 其中有详细的注释，数据在dataset文件夹中。
+
+使用 [jieba](https://github.com/fxsjy/jieba) 分词, 采用 [中文停用词表](https://github.com/goto456/stopwords)。
 
