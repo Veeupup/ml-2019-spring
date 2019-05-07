@@ -3,4 +3,4 @@ __pycache__/
 NaiveBayes/word-bag.txt
 NaiveBayes/test0/*
 NaiveBayes/wordset.txt
-
+*/.DS_Store
