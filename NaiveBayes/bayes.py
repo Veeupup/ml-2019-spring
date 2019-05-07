@@ -16,10 +16,16 @@ from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 
 # 词汇表
 myVocabList = []
+# 类别列表
+reslist = ['C3-Art', 'C4-Literature', 'C34-Economy', 'C23-Mine', 'C39-Sports', 'C7-History', 'C19-Computer', 'C29-Transport', 'C15-Energy', 'C38-Politics', 'C11-Space', 'C17-Communication', 'C32-Agriculture', 'C5-Education', 'C37-Military', 'C16-Electronics', 'C36-Medical', 'C6-Philosophy', 'C35-Law', 'C31-Enviornment']
 
 
-'''获取所有文档单词的集合'''
 def createVocabList(dataSet):
+    """
+    获取所有的词语
+    :param dataSet:
+    :return:
+    """
     vocabSet = set([])
     for document in dataSet:
         vocabSet = vocabSet | set(document)  # 操作符 | 用于求两个集合的并集
@@ -33,14 +39,16 @@ def loadDataSet():
     """
     docList = []    # 文档列表
     classList = []  # 类别列表
-    global dirList   # 类别列表
-    i = 0           # 测试，不能全部读完,自己本机的计算能力有限 我们这里首先只对一部分进行测试
+    dirList = []   # 类别列表
     count = 0
-    for root, dirs, files in os.walk("./dataset", topdown=False):
+    for root, dirs, files in os.walk("./train", topdown=False):
         for name in dirs:
             dirList.append(name)
+    print(dirList)
+    global reslist
+    reslist = dirList
     # print(dirList)
-    for root, dirs, files in os.walk("./dataset", topdown=False):
+    for root, dirs, files in os.walk("./train", topdown=False):
         for name in files:
             try:
                 typeName = os.path.join(root).split("/")[2]
@@ -90,34 +98,6 @@ def rm_tokens(words, stwlist):
     return words_list
 
 
-def getAllVocList(dataSet):
-    """
-    获取所有文档里面的所有词语，除去重复的词语
-    :param dataSet: 所有文档的词语列表
-    :return: 所有词语的列表
-    """
-    vocSet = set([])
-    for document in dataSet:
-        vocSet = vocSet | set(document)
-    return list(vocSet)
-
-
-def bagWords2Vec(vocList, inputSet):
-    """
-    输入文档词袋模型
-    :param vocList: 所有词语的List
-    :param inputSet: 输入文档的词语
-    :return: 词袋矩阵向量
-    """
-    # 一开始的时候，所有的位置都是 0
-    vec = [0] * len(vocList)
-    # 如果这个词语出现在其中，那么对应的位置置为一
-    for word in inputSet:
-        if word in vocList:
-            vec[vocList.index(word)] += 1
-    return vec
-
-
 def trainNB0(trainMatrix, trainCategory):
     """
     朴素贝叶斯模型训练数据优化
@@ -150,8 +130,10 @@ def trainNB0(trainMatrix, trainCategory):
     return pVect, pi
 
 
-'''朴素贝叶斯分类函数,将乘法转换为加法'''
 def classifyNB(vec2Classify, pVect,pi):
+    """
+    朴素贝叶斯分类函数,将乘法转换为加法
+    """
     # 计算公式  log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C))
     bnpi = [] # 文档分类到各类的概率值列表
     for x in range(2):
@@ -164,8 +146,10 @@ def classifyNB(vec2Classify, pVect,pi):
     return reslist[index[0]] # 返回分类值
 
 
-'''文档词袋模型，创建矩阵数据'''
 def bagOfWords2VecMN(vocabList, inputSet):
+    """
+    词袋模型，返回矩阵
+    """
     returnVec = [0] * len(vocabList)
     for word in inputSet:
         if word in vocabList:
@@ -176,18 +160,26 @@ def bagOfWords2VecMN(vocabList, inputSet):
 def storedata():
     # 3. 计算单词是否出现并创建数据矩阵
     docList,classList,myVocabList = loadDataSet()
+    print("读取完毕")
     # 计算单词是否出现并创建数据矩阵
+    print("开始计算向量")
     trainMat = []
+    i = 0
     for postinDoc in docList:
+        print(i)
+        i+=1
         trainMat.append(bagOfWords2VecMN(myVocabList, postinDoc))
+    print("向量计算完毕")
     res = ""
     for i in range(len(trainMat)):
         res +=' '.join([str(x) for x in trainMat[i]])+' '+str(classList[i])+'\n'
     # print(res[:-1]) # 删除最后一个换行符
+    print("开始写入文件")
     with open('./word-bag.txt','w') as fw:
         fw.write(res[:-1])
     with open('./wordset.txt','w') as fw:
         fw.write(' '.join([str(v) for v in myVocabList]))
+    print("文件写入完毕")
 
 
 def grabdata():
@@ -233,8 +225,9 @@ def MyGaussianNB(trainMat='',Classlabels='',testDoc=''):
     clf.fit(X, Y)
     # 测试预测结果
     index = clf.predict(testDoc) # 返回索引
-    reslist = ['Art','Literature']
-    print(reslist[index[0]])
+    global reslist
+    list = reslist
+    return list[index[0]]
 
 
 '''多项朴素贝叶斯'''
@@ -248,8 +241,9 @@ def MyMultinomialNB(trainMat='',Classlabels='',testDoc=''):
     clf.fit(X, Y)
     # 测试预测结果
     index = clf.predict(testDoc) # 返回索引
-    reslist = ['Art','Literature']
-    print(reslist[index[0]])
+    global reslist
+    list = reslist
+    return list[index[0]]
 
 
 '''伯努利朴素贝叶斯'''
@@ -263,33 +257,64 @@ def MyBernoulliNB(trainMat='',Classlabels='',testDoc=''):
     clf.fit(X, Y)
     # 测试预测结果
     index = clf.predict(testDoc) # 返回索引
-    reslist = ['Art','Literature']
-    print(reslist[index[0]])
-
+    global reslist
+    list = reslist
+    return list[index[0]]
 
 
 def testNB():
+    print("开始读取数据")
     trainMat, Classlabels, myVocabList = grabdata()  # 读取训练结果
-    for root, dirs, files in os.walk("./test/C4-Literature", topdown=False):
+    print("数据读取完毕")
+    # 统计三种贝叶斯模型的预测正确的个数
+    i1 = 0
+    i2 = 0
+    i3 = 0
+    count = 0
+    error = 0
+    for root, dirs, files in os.walk("./test0", topdown=False):
         for name in files:
-            typeName = os.path.join(root).split("/")[2]
-            print("本文是"+typeName)
-            testEntry = textParse(open(os.path.join(root, name), encoding='gbk').read())
-            testDoc = np.array(bagOfWords2VecMN(myVocabList, testEntry))  # 测试数据
-            b = []
-            b.append(testDoc)
-            # 测试预测结果
-            p1 = MyGaussianNB(trainMat, Classlabels, b)
-            p2 = MyMultinomialNB(trainMat, Classlabels, b)
-            p3 = MyBernoulliNB(trainMat, Classlabels, b)
-            print(p1, p2, p3)
-            print("=====")
+            try:
+                typeName = os.path.join(root).split("/")[2]
+                print("本文是"+typeName)
+                print(os.path.join(root, name))
+                testEntry = textParse(open(os.path.join(root, name), encoding='gbk').read())
+                testDoc = np.array(bagOfWords2VecMN(myVocabList, testEntry))  # 测试数据
+                b = []
+                b.append(testDoc)
+                # 测试预测结果
+                p1 = MyGaussianNB(trainMat, Classlabels, b)
+                p2 = MyMultinomialNB(trainMat, Classlabels, b)
+                p3 = MyBernoulliNB(trainMat, Classlabels, b)
+                if(typeName == p1):
+                    i1 += 1
+                if (typeName == p2):
+                    i2 += 1
+                if (typeName == p3):
+                    i3 += 1
+                count+=1
+                print(p1, p2, p3)
+                print("=====")
+            except Exception:
+                print(Exception.args)
+                error += 1
+    print(i1 / count)
+    print(i2 / count)
+    print(i3 / count)
+    print(error)
+    with open('./result.txt','w') as fw:
+        fw.write("测试完毕")
+        fw.write("三种高斯模型正确率分别为：")
+        fw.write(str(i1 / count))
+        fw.write(str(i2 / count))
+        fw.write(str(i3 / count))
 
 
 if __name__ == '__main__':
     """
     进行测试，输出正确率与每次预测成果
     """
+    storedata()
     testNB()
 
 
