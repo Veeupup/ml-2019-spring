@@ -2,7 +2,7 @@
 __author__ = 'Vee'
 
 """
-采用朴素贝叶斯 Naive Bayes 
+采用朴素贝叶斯 Naive Bayes 和 KNN 作为分类器
 这里由于数据量太大，我们首先针对部分数据进行训练
 手动将数据分为训练集和测试集
 """
@@ -12,6 +12,7 @@ import re
 import jieba
 import itertools
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
+from sklearn.neighbors import KNeighborsClassifier
 
 
 # 词汇表
@@ -22,9 +23,8 @@ reslist = ['C3-Art', 'C4-Literature', 'C34-Economy', 'C23-Mine', 'C39-Sports', '
 
 def createVocabList(dataSet):
     """
-    获取所有的词语
-    :param dataSet:
-    :return:
+    获取所有文章中的词语（不重复）
+    :return: list
     """
     vocabSet = set([])
     for document in dataSet:
@@ -35,7 +35,6 @@ def createVocabList(dataSet):
 def loadDataSet():
     """
     创建数据集合和每个类的标签
-    :return:
     """
     docList = []    # 文档列表
     classList = []  # 类别列表
@@ -173,7 +172,6 @@ def storedata():
     res = ""
     for i in range(len(trainMat)):
         res +=' '.join([str(x) for x in trainMat[i]])+' '+str(classList[i])+'\n'
-    # print(res[:-1]) # 删除最后一个换行符
     print("开始写入文件")
     with open('./word-bag.txt','w') as fw:
         fw.write(res[:-1])
@@ -262,7 +260,20 @@ def MyBernoulliNB(trainMat='',Classlabels='',testDoc=''):
     return list[index[0]]
 
 
-def testNB():
+def MyKnnClassfier(trainMat='', Classlabels='', testDoc=''):
+    # 训练数据
+    X = np.array(trainMat)
+    Y = np.array(Classlabels)
+
+    knnclf = KNeighborsClassifier()  # default with k=5
+    knnclf.fit(X, Y)
+    index = knnclf.predict(testDoc)
+    global reslist
+    list = reslist
+    return list[index[0]]
+
+
+def test():
     print("开始读取数据")
     trainMat, Classlabels, myVocabList = grabdata()  # 读取训练结果
     print("数据读取完毕")
@@ -270,6 +281,7 @@ def testNB():
     i1 = 0
     i2 = 0
     i3 = 0
+    i4 = 0
     count = 0
     error = 0
     for root, dirs, files in os.walk("./test0", topdown=False):
@@ -286,14 +298,18 @@ def testNB():
                 p1 = MyGaussianNB(trainMat, Classlabels, b)
                 p2 = MyMultinomialNB(trainMat, Classlabels, b)
                 p3 = MyBernoulliNB(trainMat, Classlabels, b)
+                p4 = MyKnnClassfier(trainMat, Classlabels, b)
                 if(typeName == p1):
                     i1 += 1
                 if (typeName == p2):
                     i2 += 1
                 if (typeName == p3):
                     i3 += 1
+                if(typeName == p4):
+                    print("yes")
+                    i4 += 1
                 count+=1
-                print(p1, p2, p3)
+                # print(p1, p2, p3, p4)
                 print("=====")
             except Exception:
                 print(Exception.args)
@@ -304,10 +320,12 @@ def testNB():
     print(error)
     with open('./result.txt','w') as fw:
         fw.write("测试完毕")
-        fw.write("三种高斯模型正确率分别为：")
-        fw.write(str(i1 / count))
-        fw.write(str(i2 / count))
-        fw.write(str(i3 / count))
+        fw.write("三种高斯模型正确率分别为：\n")
+        fw.write(str(i1 / count) + "\n")
+        fw.write(str(i2 / count) + "\n")
+        fw.write(str(i3 / count) + "\n")
+        fw.write("KNN的正确率为 \n")
+        fw.write(str(i4 / count) + "\n")
 
 
 if __name__ == '__main__':
@@ -315,7 +333,7 @@ if __name__ == '__main__':
     进行测试，输出正确率与每次预测成果
     """
     storedata()
-    testNB()
+    test()
 
 
 

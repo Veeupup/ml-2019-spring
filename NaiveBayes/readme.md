@@ -1,4 +1,4 @@
-# Naive Bayes 朴素贝叶斯
+# Naive Bayes 朴素贝叶斯 和 KNN
 简单来说，
 
 > ​		朴素贝叶斯 = 贝叶斯公式 + 条件独立假设
@@ -12,4 +12,6 @@
 代码主干在 bayes.py 其中有详细的注释，数据在dataset文件夹中。
 
 使用 [jieba](https://github.com/fxsjy/jieba) 分词, 采用 [中文停用词表](https://github.com/goto456/stopwords)。
+
+最终分类模型分别采用了 sklearn 中的三种贝叶斯分类器和 KNN分类器。
 
